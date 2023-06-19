@@ -3,6 +3,7 @@
     "name": "mindwrite",
     "slug": "mindwrite",
     "version": "1.0.0",
+    "plugins": ["@react-native-voice/voice"],
     "assetBundlePatterns": [
       "**/*"
     ]
