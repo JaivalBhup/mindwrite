@@ -21,6 +21,8 @@ export default function Record() {
   const [end, setEnd] = useState('');
   const [started, setStarted] = useState('');
   const [results, setResults] = useState("");
+  const [genSa, setGenSa] = useState(false)
+  const [tts, setTts] = useState(false)
   const [partialResults, setPartialResults] = useState([]);
   const path = RNFS.CachesDirectoryPath+"/mindwrite";
   const documentPath = RNFS.DocumentDirectoryPath;
@@ -61,7 +63,7 @@ export default function Record() {
 };
 const onSpeechVolumeC = (e) => {
   var r = 6
-  var R = 1
+  var R = 0.5
   var x = e.value - 1
   var y = ((R/r)*x)
   var output = y + 1
@@ -119,7 +121,7 @@ const onSpeechError = (e) => {
     setError(JSON.stringify(e.error));
 };
 const onSpeechResults = (e) => {
-    setResults("    "+e.value[0])
+    setResults(e.value[0])
 };
 const onSpeechPartialResults = (e) => {
     setPartialResults(e.value)
@@ -203,11 +205,35 @@ const onSpeechVolumeChanged = (e) => {
     })
   };
   return (
-    <SafeAreaView style={{backgroundColor: '#fff', width:"100%", height:"100%"}}>
-<View style={{alignItems:"center"}}><Text>{recordTime}</Text></View>
-        <TextInput editable={false} style={styles.results} multiline={true}  value={results}/>
+    <SafeAreaView style={{backgroundColor: 'rgb(215,238,235)', width:"100%", height:"100%"}}>
 
-    <View style={{ flex: 1, flexDirection: 'column', alignItems: 'center', alignContent: 'center', justifyContent:"center"}}>
+
+        <View style={{alignItems:"center"}}><Text style={styles.recordTimeText}>{recordTime.replace(/\:/g,".")}</Text></View>
+          <View style={{display: 'flex',justifyContent: "space-around",flexDirection: 'column', height: "100%"}}>
+          <View  style={{height:"80%"}}>
+          <TextInput editable={false} style={{...styles.results, height:"100%"}} multiline={true}  value={results}/>
+          </View>
+        {/* <View style={{flexDirection:"row", alignItems:"center", justifyContent:"space-between", paddingLeft:20, paddingRight:20}}>
+        <View style={{flexDirection:"column", alignItems:"center"}}>
+        <TouchableOpacity style={genSa?styles.smBtnGreen:styles.smBtn} onPress={()=> setGenSa(!genSa)}>
+          <Ionicons 
+            name={"stats-chart-outline"}
+            size={30}
+          />
+          </TouchableOpacity>
+          <Text>Speech Analysis</Text>
+        </View>
+        <View style={{flexDirection:"column", alignItems:"center"}}>
+        <TouchableOpacity style={tts?styles.smBtnGreen:styles.smBtn} onPress={()=> setTts(!tts)}>
+          <Ionicons 
+            name={"receipt-outline"}
+            size={30}
+          />
+          </TouchableOpacity>
+          <Text>Speech To Text</Text>
+        </View>
+      </View> */}
+    <View style={{ flex: 1, flexDirection: 'column', alignItems: 'center', alignContent: 'center', justifyContent:"flex-end", bottom:100}}>
     <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
       {/* {soundView.map((item)=>{
         return (
@@ -234,33 +260,34 @@ const onSpeechVolumeChanged = (e) => {
         // borderColor:"gray",
          transform:[{scale:scale1}], position:"absolute"}}>
 
-</Animated.View>
-<Animated.View style={{...styles.sound1Back,borderRadius:50, 
-  backgroundColor:"#999999",
-  // borderWidth:2,
-  // borderColor:"gray",
-  transform:[{scale:scale2}], position:"absolute"}}>
+            </Animated.View>
+            <Animated.View style={{...styles.sound1Back,borderRadius:50, 
+              backgroundColor:"#999999",
+              // borderWidth:2,
+              // borderColor:"gray",
+              transform:[{scale:scale2}], position:"absolute"}}>
 
-</Animated.View>
-<Animated.View style={{...styles.sound1Back,borderRadius:50, 
-  backgroundColor:"#EEEEEE",
-  // borderWidth:2,
-  // borderColor:"gray",
-  transform:[{scale:scale3}], position:"absolute"}}>
+            </Animated.View>
+            <Animated.View style={{...styles.sound1Back,borderRadius:50, 
+              backgroundColor:"#EEEEEE",
+              // borderWidth:2,
+              // borderColor:"gray",
+              transform:[{scale:scale3}], position:"absolute"}}>
 
-</Animated.View>
-<Animated.View style={{...styles.sound1Back,borderRadius:50, 
-  backgroundColor:"#EEEEEE",
-  // borderWidth:2,
-  // borderColor:"gray",
-  transform:[{scale:scale4}], position:"absolute"}}>
+            </Animated.View>
+            <Animated.View style={{...styles.sound1Back,borderRadius:50, 
+              backgroundColor:"#FFFFFF",
+              // borderWidth:2,
+              // borderColor:"gray",
+              transform:[{scale:scale4}], position:"absolute"}}>
 
-</Animated.View>
-      <TouchableOpacity onPress={()=> started == "True"?onStopRecordTest():onStartRecordTest()} style={{...styles.recButton, borderRadius:75, position:"absolute"}}>
-      <Ionicons style={{
-        marginLeft:8
-      }} name={started == "True"?"stop-circle-outline":"mic-outline"} size={50} color={"black"} />
-      </TouchableOpacity>
+            </Animated.View>
+                  <TouchableOpacity onPress={()=> started == "True"?onStopRecordTest():onStartRecordTest()} style={{...styles.recButton, borderRadius:75, position:"absolute"}}>
+                  <Ionicons style={{
+                    
+                    marginLeft:8
+                  }} name={started == "True"?"stop-circle-outline":"mic-outline"} size={50} color={"black"} />
+                  </TouchableOpacity>
     </View> 
      
     
@@ -280,6 +307,7 @@ const onSpeechVolumeChanged = (e) => {
         </View> */}
     {/* </View> */}
 
+      </View>
       </View>
       </SafeAreaView>
   );
@@ -318,14 +346,13 @@ sound1Back:{
   marginLeft:2,
   borderRadius:3, 
   borderWidth:1,
-  borderColor:"gray",
 }, recButton:{
   width:100,
   height:100,
   alignContent: 'center', 
   justifyContent: 'center',
   alignItems: 'center',
-  backgroundColor:"transparent"
+  backgroundColor:"transparent",
 
 },
 stopButton:{
@@ -348,9 +375,44 @@ stopButton:{
   marginTop:40,
   height:300,
   fontSize:20,
-  width:"100%",
+  width:"90%",
   padding:30,
-
+  borderWidth:1,
+  backgroundColor:"rgb(255,255,255)",
+  borderRadius:10,
+  margin:"5%",
   fontFamily:"Helvetica Neue",
+},recordTimeText:{
+  fontFamily:"Helvetica Neue",
+  fontWeight:"bold",
+  fontSize:20
+},
+label:{
+  fontFamily:"Helvetica Neue",
+  fontSize:16
+},
+smBtn:{
+  margin:10,
+  backgroundColor:"lightgray",
+  padding:4,
+  borderWidth:2,
+  borderColor:"gray",
+  borderRadius:10
+},
+smBtnGreen:{
+  margin:10,
+  backgroundColor:"lightgreen",
+  padding:4,
+  borderWidth:2,
+  borderColor:"green",
+  borderRadius:10
+},
+smBtnRed:{
+  margin:10,
+  backgroundColor:"#FFCCCB",
+  padding:4,
+  borderWidth:2,
+  borderColor:"red",
+  borderRadius:10
 }
 }); 
