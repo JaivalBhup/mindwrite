@@ -27,10 +27,7 @@ export default function Record() {
   const path = RNFS.CachesDirectoryPath+"/mindwrite";
   const documentPath = RNFS.DocumentDirectoryPath;
   const scale = useRef(new Animated.Value(1)).current
-  const scale1 = useRef(new Animated.Value(1)).current
   const scale2 = useRef(new Animated.Value(1)).current
-  const scale3 = useRef(new Animated.Value(1)).current
-  const scale4 = useRef(new Animated.Value(1)).current
   useEffect(()=>{
       RNFS.exists(path)
         .then(e=>{
@@ -73,44 +70,10 @@ const onSpeechVolumeC = (e) => {
   var output1 = y1 + 0.1
 
     Animated.sequence([
-      Animated.timing(scale1,{useNativeDriver:true, toValue:output, duration:25,easing:Easing.bounce}),
-      Animated.timing(scale2,{useNativeDriver:true, toValue:output-output1, duration:60,easing:Easing.bounce}),
-      Animated.timing(scale3,{useNativeDriver:true, toValue:output-(2*output1), duration:95,easing:Easing.bounce}),
-      Animated.timing(scale4,{useNativeDriver:true, toValue:output-(3*output1), duration:130,easing:Easing.bounce}),
-      Animated.timing(scale1,{useNativeDriver:true, toValue:1, duration:1,easing:Easing.bounce}),
-      Animated.timing(scale2,{useNativeDriver:true, toValue:1, duration:1,easing:Easing.bounce}),
-      Animated.timing(scale3,{useNativeDriver:true, toValue:1, duration:1,easing:Easing.bounce}),
-      Animated.timing(scale4,{useNativeDriver:true, toValue:1, duration:1,easing:Easing.bounce}),
+      Animated.timing(scale2,{useNativeDriver:true, toValue:output-output1, duration:200,easing:Easing.bounce}),
+        Animated.timing(scale2,{useNativeDriver:true, toValue:1, duration:1,easing:Easing.bounce}),    
     ]).start()
-  // if(e.value >3){
 
-  //   Animated.sequence([
-  //     Animated.timing(scale1,{useNativeDriver:true, toValue:2, duration:25,easing:Easing.bounce}),
-  //     Animated.timing(scale2,{useNativeDriver:true, toValue:1.75, duration:60,easing:Easing.bounce}),
-  //     Animated.timing(scale3,{useNativeDriver:true, toValue:1.5, duration:95,easing:Easing.bounce}),
-  //     Animated.timing(scale4,{useNativeDriver:true, toValue:1.25, duration:130,easing:Easing.bounce}),
-  //     Animated.timing(scale1,{useNativeDriver:true, toValue:1, duration:1,easing:Easing.bounce}),
-  //     Animated.timing(scale2,{useNativeDriver:true, toValue:1, duration:1,easing:Easing.bounce}),
-  //     Animated.timing(scale3,{useNativeDriver:true, toValue:1, duration:1,easing:Easing.bounce}),
-  //     Animated.timing(scale4,{useNativeDriver:true, toValue:1, duration:1,easing:Easing.bounce}),
-  //   ]).start()
-   
-  // }else{
-  //   Animated.sequence([
-  //     Animated.timing(scale1,{useNativeDriver:true, toValue:2, duration:100,easing:Easing.bounce}),
-  //     Animated.timing(scale2,{useNativeDriver:true, toValue:1.75, duration:200,easing:Easing.bounce}),
-  //     Animated.timing(scale3,{useNativeDriver:true, toValue:1.5, duration:300,easing:Easing.bounce}),
-  //     Animated.timing(scale4,{useNativeDriver:true, toValue:1.25, duration:400,easing:Easing.bounce}),
-  //     Animated.timing(scale1,{useNativeDriver:true, toValue:1, duration:1,easing:Easing.bounce}),
-  //     Animated.timing(scale2,{useNativeDriver:true, toValue:1, duration:1,easing:Easing.bounce}),
-  //     Animated.timing(scale3,{useNativeDriver:true, toValue:1, duration:1,easing:Easing.bounce}),
-  //     Animated.timing(scale4,{useNativeDriver:true, toValue:1, duration:1,easing:Easing.bounce}),
-  //   ]).start()
-  //   // Animated.sequence([
-  //   //   Animated.spring(scale, {useNativeDriver:true, toValue:2}),
-  //   //   Animated.spring(scale, {useNativeDriver:true, toValue:1})
-  //   // ]).start()
-  // }
   setDb(e.value)
 }
 const onSpeechEnd = () => {
@@ -181,7 +144,12 @@ const onSpeechVolumeChanged = (e) => {
   
   
   const onStopRecord = async () => {
-    Animated.spring(scale, {useNativeDriver:true, toValue:1, duration:1}).start()
+    let jsonData = {
+      text:results,
+      date:new Date().toLocaleDateString(),
+      duration: recordTime.replace(/\:/g,".")
+    }
+    // Animated.spring(scale, {useNativeDriver:true, toValue:1, duration:1}).start()
     setDb(0)
       setStarted(null);
     const result = await audioRecorderPlayer.stopRecorder();
@@ -192,7 +160,7 @@ const onSpeechVolumeChanged = (e) => {
         console.log(e)
       }
     setRecordSecs(0)
-    await RNFS.writeFile(documentPath+"/"+newFile+".txt", results)
+    await RNFS.writeFile(documentPath+"/"+newFile+".json", JSON.stringify(jsonData));
     setResults("")
     RNFS.readDir(path).then(e=>{
       var count = 0
@@ -209,8 +177,19 @@ const onSpeechVolumeChanged = (e) => {
 
 
         <View style={{alignItems:"center"}}><Text style={styles.recordTimeText}>{recordTime.replace(/\:/g,".")}</Text></View>
+        {/* <View style={{flexDirection:"row", alignItems:"center", justifyContent:"space-between", paddingLeft:20, paddingRight:20}}>
+          <View style={{flexDirection:"column", alignItems:"center"}}>
+          <TouchableOpacity style={genSa?styles.smBtnGreen:styles.smBtn} onPress={()=> setGenSa(!genSa)}>
+            <Ionicons 
+              name={"stats-chart-outline"}
+              size={30}
+            />
+            </TouchableOpacity>
+            <Text>Speech Analysis</Text>
+          </View>
+        </View> */}
           <View style={{display: 'flex',justifyContent: "space-around",flexDirection: 'column', height: "100%"}}>
-          <View  style={{height:"80%"}}>
+          <View  style={{height:"60%"}}>
           <TextInput editable={false} style={{...styles.results, height:"100%"}} multiline={true}  value={results}/>
           </View>
         {/* <View style={{flexDirection:"row", alignItems:"center", justifyContent:"space-between", paddingLeft:20, paddingRight:20}}>
@@ -233,34 +212,12 @@ const onSpeechVolumeChanged = (e) => {
           <Text>Speech To Text</Text>
         </View>
       </View> */}
-    <View style={{ flex: 1, flexDirection: 'column', alignItems: 'center', alignContent: 'center', justifyContent:"flex-end", bottom:100}}>
+    <View style={{ flex: 1, flexDirection: 'column', alignItems: 'center', alignContent: 'center', justifyContent:"flex-end"}}>
     <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-      {/* {soundView.map((item)=>{
-        return (
-            <View key={item.id} style={{...styles.sound, backgroundColor:"black",height:20, transform:[{translateX:item.xVal}]}}/> 
-
-        )
-      })} */}
     <View>
     
 
-    {/* {started=="True"?(<TouchableOpacity onPress={()=>onStopRecordTest()} style={{...styles.stopButton, borderRadius:75, backgroundColor:"white", transform:[{translateX:190},{translateY:30}]}}>
-      <Ionicons name={"pause-outline"} size={20} color={"black"} />
-      </TouchableOpacity>):<View style={{...styles.stopButton,borderWidth:0 ,borderRadius:75, backgroundColor:"white", transform:[{translateX:140},{translateY:30}]}}></View>} */}
-      
-
-      <View style={{...styles.sound1,borderRadius:50, backgroundColor:"white"}}>
-    
-      <Animated.View style={{...styles.sound1Back,borderRadius:50, backgroundColor:"white",transform:[{scale}], position:"absolute"}}>
-
-      </Animated.View>
-      <Animated.View style={{...styles.sound1Back,borderRadius:50,
-         backgroundColor:"#666666",
-        // borderWidth:2,
-        // borderColor:"gray",
-         transform:[{scale:scale1}], position:"absolute"}}>
-
-            </Animated.View>
+      <View style={started=="True"?styles.buttonContainerPressed:styles.buttonContainer}>
             <Animated.View style={{...styles.sound1Back,borderRadius:50, 
               backgroundColor:"#999999",
               // borderWidth:2,
@@ -268,26 +225,21 @@ const onSpeechVolumeChanged = (e) => {
               transform:[{scale:scale2}], position:"absolute"}}>
 
             </Animated.View>
-            <Animated.View style={{...styles.sound1Back,borderRadius:50, 
-              backgroundColor:"#EEEEEE",
-              // borderWidth:2,
-              // borderColor:"gray",
-              transform:[{scale:scale3}], position:"absolute"}}>
-
-            </Animated.View>
-            <Animated.View style={{...styles.sound1Back,borderRadius:50, 
+            <View style={{...styles.sound1Back,borderRadius:50, 
               backgroundColor:"#FFFFFF",
-              // borderWidth:2,
+              borderWidth:0,
+              borderColor:"#999999",
               // borderColor:"gray",
-              transform:[{scale:scale4}], position:"absolute"}}>
+              // transform:[{scale:scale4}],
+               position:"absolute"}}>
 
-            </Animated.View>
-                  <TouchableOpacity onPress={()=> started == "True"?onStopRecordTest():onStartRecordTest()} style={{...styles.recButton, borderRadius:75, position:"absolute"}}>
-                  <Ionicons style={{
-                    
-                    marginLeft:8
-                  }} name={started == "True"?"stop-circle-outline":"mic-outline"} size={50} color={"black"} />
-                  </TouchableOpacity>
+            </View>
+            <TouchableOpacity onPress={()=> started == "True"?onStopRecord():onStartRecord()} style={{...styles.recButton, borderRadius:50, position:"absolute"}}>
+            <Ionicons style={{
+              
+              marginLeft:5
+            }} name={started == "True"?"stop-circle-outline":"mic-outline"} size={50} color={"black"} />
+            </TouchableOpacity>
     </View> 
      
     
@@ -296,17 +248,6 @@ const onSpeechVolumeChanged = (e) => {
     </View>
 
     </View>
-
-    {/* <View style={{ flex: 1, flexDirection: 'column', alignItems: 'center'}}> */}
-        {/* <View style={{ flex: 1,flexDirection: 'row', alignItems: 'center', justifyContent: 'center', maxHeight:100 }}>
-          <View style={{...styles.sound, backgroundColor:"black",height:(((45*db)/10)+2)}}></View>
-          <View style={{...styles.sound, backgroundColor:"black",height:(((65*db)/10)+3)}}></View>
-          <View style={{...styles.sound, backgroundColor:"black",height:(((105*db)/10)+5)}}></View>
-          <View style={{...styles.sound, backgroundColor:"black",height:(((65*db)/10)+3)}}></View>
-          <View style={{...styles.sound, backgroundColor:"black",height:(((45*db)/10)+2)}}></View>
-        </View> */}
-    {/* </View> */}
-
       </View>
       </View>
       </SafeAreaView>
@@ -343,7 +284,7 @@ sound1:{
 sound1Back:{
   width:100,
   height:100,
-  marginLeft:2,
+  // marginLeft:2,
   borderRadius:3, 
   borderWidth:1,
 }, recButton:{
@@ -414,5 +355,40 @@ smBtnRed:{
   borderWidth:2,
   borderColor:"red",
   borderRadius:10
-}
+},
+  buttonContainer: {
+    width:100,
+    height:100,
+    alignContent: 'center', 
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor:"transparent",
+
+    borderRadius: 50,
+    // backgroundColor: '#3D84A8',
+    padding: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  buttonContainerPressed: {
+    width:100,
+    height:100,
+    alignContent: 'center', 
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor:"transparent",
+
+    borderRadius: 50,
+  },
 }); 

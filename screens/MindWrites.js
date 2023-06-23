@@ -20,19 +20,24 @@ export default function MindWrites({navigation}) {
   const [copySelected, setCopySelected] = useState(false);
   const path = RNFS.CachesDirectoryPath+"/mindwrite";
   const scale = useRef(new Animated.Value(0)).current
+  const documentPath = RNFS.DocumentDirectoryPath;
 
+  const getData = async () => {
+    var jsonFiles = await RNFS.readDir(documentPath)
+    mp3s = {}
+    for(let file of jsonFiles) {
+      let name = file.name.split('.')[0]
+      let data = await RNFS.readFile(documentPath+"/"+file.name,{encoding: 'utf8'})
+      let jsonData = JSON.parse(data)
+      mp3s[name] = {...jsonData, ...file}
+    }
+    console.log(mp3s)
+    setFiles(mp3s)
+  }
   useEffect(()=>{
     if(isFocused){
-        RNFS.readDir(path).then(e=>{
-          var mp3s = {}
-          for(let file of e){
-            if(file.name.split('.')[1] == 'm4a'){
-              mp3s[file.name] = file
-            }
-
-          }
-          setFiles(mp3s)
-        })
+      getData()
+        
       }
   },[isFocused])
   const deleteFile = (name)=>{
@@ -67,7 +72,7 @@ export default function MindWrites({navigation}) {
       return;
     }
     console.log('onStartPlay');
-    const msg = await audioRecorderPlayer.startPlayer("/mindwrite/"+name);
+    const msg = await audioRecorderPlayer.startPlayer("/mindwrite/"+name+".m4a");
     console.log(msg);
     audioRecorderPlayer.addPlayBackListener((e) => {
       setPlayTime(audioRecorderPlayer.mmssss(Math.floor(e.currentPosition)))
@@ -115,46 +120,75 @@ export default function MindWrites({navigation}) {
     },200)
   }
   return (
-    <SafeAreaView style={{backgroundColor: '#fff', width:"100%", height:"100%"}}>
+    <SafeAreaView style={{backgroundColor: 'rgb(215,238,235)', width:"100%", height:"100%"}}>
+      <View style={{width:"100%", flexDirection:"row"}}>
       <Text style={{
-        fontSize: 30,
+        fontSize: 20,
         // fontFamily: "RobotoSerif-Bold",
         color:"#000",
         margin:10,
-        fontWeight:"bold"
+        fontWeight:"bold",
+        width:"80%"
       }}>Your MindWrites</Text>
+      <TouchableOpacity style={{padding:10,height:40,width:40, backgroundColor:"#FFF", borderRadius:10,shadowColor: '#000',shadowOffset: {
+              width: 0,
+              height: 2,
+            },
+            shadowOpacity: 0.25,}}>
+            <Ionicons style={{
+            }} name={"search"} size={20} color={"black"} />
+        </TouchableOpacity>
+      </View>
       <FlatList
           style={styles.list}
           data={Object.keys(files)}
           renderItem={({item}) => (
             <>
-          <View style={{ flex: 1, flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <View style={styles.mindwrite}>
 
-            <View  style={{backgroundColor:"white", height:50, justifyContent: "space-between",width:"100%",display: 'flex', flexDirection: 'row'}}>
+            <TouchableOpacity  onPress={()=>selectFile(item)} style={{ height:50, justifyContent: "space-between",width:"100%",display: 'flex', flexDirection: 'row'}}>
 
-              <TouchableOpacity 
-              style={{width:item == selectedMp3?"70%":"100%", paddingLeft:10}}
-              onPress={()=>selectFile(item)}
-              // onPress={()=>{navigation.navigate('MindWrite',{file:item.name})}}
-              >
-                <Text style={{fontSize:20, fontWeight:400}}> {files[item].name.split('.')[0]}</Text>
+              <View
+              style={{width:item == selectedMp3?"70%":"100%", paddingLeft:10, flexDirection: 'row'}}>
+
+                <View style={{width:"0%"}}>
+                <TouchableOpacity 
+              
+                  onPress={()=>selectFile(item)}
+                  
+                  >
+
+                </TouchableOpacity>
+
+                </View>
+                <View style={{width:"80%"}}>
+                  <Text style={{fontSize:20, fontWeight:400}}> {item} </Text>
+                  
+                  <Text style={{fontSize:12,marginTop:10,marginBottom:20,color:"gray"}}>  {files[item].ctime.toDateString()}</Text>
+                </View>
+
+                <View>                  
+                  {item == selectFile ? <Text style={{fontSize:12,color:"gray"}}>  {files[item].duration}</Text> : (<></>)}
+                </View>
+              
 
 
-              </TouchableOpacity>
+              </View>
+              
               {item == selectedMp3?( <TouchableOpacity 
-              onPress={()=>{navigation.navigate('MindWrite',{file:files[item].name})}}
+              onPress={()=>{navigation.navigate('MindWrite',{file:item})}}
               >
                 <Ionicons name={"information-circle-outline"} size={30} color={"gray"} style={{...styles.playPause,paddingRight:10}}/>
               </TouchableOpacity>):
-              (<TouchableOpacity><Text style={{fontSize:17, fontWeight:200}}>{files[item].ctime.toDateString()}</Text></TouchableOpacity>)}
+              (<></>)}
              
-              </View>
+              </TouchableOpacity>
               {item == selectedMp3?(
-                <Animated.View style={{borderBottomWidth:1, borderBottomColor:"lightgray",flex: 1, flexDirection: 'column', alignContent: 'center', justifyContent:"center", transform:[{scaleY:scale}], marginBottom:20}}>
+                <Animated.View style={{flex: 1, flexDirection: 'column', alignContent: 'center', justifyContent:"center", transform:[{scaleY:scale}]}}>
 
 
                   <View style={styles.slider_view}>
-                      <Text style={styles.slider_time}> {playTime.split(":")[0]+":"+playTime.split(":")[1]} </Text>
+                      <Text style={styles.slider_time}> {playTime.split(":")[0]+"."+playTime.split(":")[1]} </Text>
                         <Slider
                               style={styles.slider_style}
                               minimumValue={0}
@@ -165,7 +199,7 @@ export default function MindWrites({navigation}) {
                               value={currentPositionSec}
                               onValueChange={val=>valueChanged(val)}
                             />
-                      <Text style={styles.slider_time}>{duration.split(":")[0]+":"+duration.split(":")[1]}</Text>
+                      <Text style={styles.slider_time}>{files[item].duration}</Text>
                     </View>
                     <View style={styles.buttons}>
                       <View
@@ -193,7 +227,7 @@ export default function MindWrites({navigation}) {
                           flexDirection:"row",
                           justifyContent:"center",
                         }}
-                      ><TouchableOpacity onPress={()=>playing?onPausePlay():onStartPlay(files[item].name)} style={{...styles.playPause}}>
+                      ><TouchableOpacity onPress={()=>playing?onPausePlay():onStartPlay(item)} style={{...styles.playPause}}>
                       <Ionicons name={playing?"pause":"play"} size={30} color={"gray"} />
                               </TouchableOpacity></View>
                               <View
@@ -211,7 +245,7 @@ export default function MindWrites({navigation}) {
 
                   </Animated.View>
 
-              ):(<View style={{borderBottomWidth:1, borderBottomColor:"lightgray", width:"100%", marginBottom:20}}></View>)}
+              ):(<></>)}
               
 
 
@@ -272,5 +306,23 @@ const styles = StyleSheet.create({
   playPause:{
     alignItems:"center",
     alignItems:"center",
-  }
+  },
+  mindwrite:{ 
+    backgroundColor:"white", flex: 1,
+   flexDirection: 'column', 
+  alignItems: 'center', 
+  justifyContent: 'center' ,
+  paddingTop:15,
+  paddingBottom:15,
+  margin:"2.5%",
+  width:"95%",
+  borderRadius:20,
+  shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    // shadowRadius: 3.84,
+}
 });
